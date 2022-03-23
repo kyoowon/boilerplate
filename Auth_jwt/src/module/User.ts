@@ -1,7 +1,9 @@
+import { Hash } from "crypto"
+
 const mongoose = require('mongoose')
 
 const userSchema = mongoose.Schema({
-    firstname: { // user firstname
+    name: { // user firstname
         type : String,
         maxlength : 50,
     },
@@ -31,5 +33,23 @@ const userSchema = mongoose.Schema({
     }
 })
 
-const User = mongoose.model('User', userSchema)
-module.exports = { User };
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+userSchema.pre('save', function (this: typeof userSchema, next: Function) {
+    const user = this;
+    if (user.isModified('password')) {
+        bcrypt.genSalt(saltRounds, (err: Error, salt: number) => {
+            bcrypt.hash(user.password, salt, (err: Error, hash: Hash) => {
+                if (err) return next(err);
+                user.password = hash;
+                next();
+            });
+        });
+    }
+    else {
+        next();
+    }
+})
+
+export default mongoose.model('User', userSchema)
