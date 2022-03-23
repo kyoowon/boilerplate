@@ -1,1 +1,4 @@
 node_modules
+
+Auth_jwt/src/config/dev.ts
+Auth_jwt/dist/
