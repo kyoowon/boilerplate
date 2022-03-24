@@ -34,6 +34,20 @@ app.post('/api/users/register', (req: Request, res: Response) => {
   })
 })
 
+// login
+app.post('/api/users/login', (req: Request, res: Response) => {
+  // 요청된 이메일이 DB에 있는지 확인. 자체 findOne 메소드 활용
+  User.findOne({email: req.body.email}, (err:Error, user: typeof User) => {
+    if (!user){
+      return res.json({
+        loginSuccess: false,
+        message: "작성한 이메일에 해당하는 유저가 없습니다."
+      })
+    }
+    
+  })
+})
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
