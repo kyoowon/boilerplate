@@ -1,6 +1,10 @@
 import { Hash } from "crypto"
+import { Callback} from "mongoose"
+import { createBrotliCompress } from "zlib"
 
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken')
+const config = require('./config/key')
 
 const userSchema = mongoose.Schema({
     name: { // user firstname
@@ -51,5 +55,25 @@ userSchema.pre('save', function (this: typeof userSchema, next: Function) {
         next();
     }
 })
+
+userSchema.methods.comparePassword = function (plainPassword: string, cb: Callback) {
+    // plainPassword : 123456 (client에서 입력한 값), this.password : db에서 가져온 값.
+    bcrypt.compare(plainPassword, this.password, function (err: Error, isMatch: boolean) {
+        if (err) return cb(err, null);
+        cb(null, isMatch);
+    })
+}
+
+userSchema.methods.generateToken = function (cb: Callback) {
+    const user = this;
+    // jwt를 이용하여 token 생성
+    // user._id + secretToken = token
+    user.token = jwt.sign(user._id.toHexString(), config.secretToken)
+    user.save(function (err: Error, user: typeof userSchema) {
+        if (err) return cb(err, null);
+        cb(null, user);
+    })
+}
+
 
 export default mongoose.model('User', userSchema)
