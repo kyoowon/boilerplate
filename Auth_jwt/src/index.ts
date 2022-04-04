@@ -1,4 +1,4 @@
-import express, {Request, Response} from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from "body-parser";
 import User from './models/User';
 
@@ -6,7 +6,7 @@ const app = express(); // express.js
 const mongoose = require('mongoose'); // mongodb Connect
 const config = require('./config/key'); // mongoDB URI key
 const cookieParser = require('cookie-parser'); // cookie
-
+const auth = require('./middleware/auth')
 
 // application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,8 +38,8 @@ app.post('/api/users/register', (req: Request, res: Response) => {
 // login
 app.post('/api/users/login', (req: Request, res: Response) => {
   // 요청된 이메일이 DB에 있는지 확인. 자체 findOne 메소드 활용
-  User.findOne({email: req.body.email}, (err:Error, user: typeof User) => {
-    if (!user){
+  User.findOne({ email: req.body.email }, (err: Error, user: typeof User) => {
+    if (!user) {
       return res.json({
         loginSuccess: false,
         message: "작성한 이메일에 해당하는 유저가 없습니다."
@@ -52,6 +52,21 @@ app.post('/api/users/login', (req: Request, res: Response) => {
       // 토큰을 저장한다. 어디에? - 캐쉬, 로컬스토리지, 세션, 쿠키 등 저장을 할 수 있다. - 그중 쿠키로 저장
       res.cookie("x_auth", user.token).status(200).json({ loginSuccess: true, userId: user._id })
     })
+  })
+})
+
+app.get('/api/users/auth', auth, (req: any, res: any) => {
+  // 여기까지 미들웨어를 통과해 왔다는 얘기는 Authentication이 True.
+  res.status(200).json({
+    _id: req.user._id,
+    // role 0 : 일반 유저, 아니면 관리자
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.user.image
   })
 })
 
