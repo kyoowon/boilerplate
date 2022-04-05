@@ -55,6 +55,7 @@ app.post('/api/users/login', (req: Request, res: Response) => {
   })
 })
 
+// Auth
 app.get('/api/users/auth', auth, (req: any, res: any) => {
   // 여기까지 미들웨어를 통과해 왔다는 얘기는 Authentication이 True.
   res.status(200).json({
@@ -70,6 +71,7 @@ app.get('/api/users/auth', auth, (req: any, res: any) => {
   })
 })
 
+// logout
 app.get('/api/users/logout', auth, (req: any, res: any) => {
   User.findOneAndUpdate({ _id: req.user.id }, { token: "" }, (err: Error, user: typeof User) => {
     if(err) return res.json({ success: false, err });
